@@ -1,13 +1,14 @@
 """FastAPI application: public API, admin API, static pages, security middleware."""
 from __future__ import annotations
 
+import hashlib
 import hmac
 from pathlib import Path
 from typing import Literal, Optional
 
 from fastapi import Depends, FastAPI, Query, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -21,6 +22,17 @@ from .stickers import DEFAULT_TEMPLATE, TEMPLATES, character_svg, render_sticker
 
 STATIC_DIR = Path(__file__).parent / "static"
 SESSION_COOKIE = "hw_admin_session"
+
+
+def static_version(root: Path = STATIC_DIR) -> str:
+    """Content hash of the static files. Pages reference assets under /static/v/<hash>/,
+    so every deploy that changes a file gets new URLs and browsers never mix old and new
+    scripts (module imports are relative, so they inherit the versioned prefix)."""
+    digest = hashlib.sha256()
+    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+        digest.update(path.relative_to(root).as_posix().encode())
+        digest.update(path.read_bytes())
+    return digest.hexdigest()[:12]
 
 CSP = ("default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; "
        "connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; "
@@ -106,6 +118,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or Settings.from_env()
     svc = App(settings)
     limiter = security.RateLimiter(settings.rate_limit_enabled)
+    versioned_prefix = f"/static/v/{static_version()}"
 
     app = FastAPI(title="Halloween 2026 Stickers", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.svc = svc
@@ -174,6 +187,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             h["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         if request.url.path.startswith("/api/") and "cache-control" not in h:
             h["Cache-Control"] = "no-store"
+        elif request.url.path.startswith(versioned_prefix + "/") and response.status_code == 200:
+            # Content-addressed URL: safe to cache for good.
+            h["Cache-Control"] = "public, max-age=31536000, immutable"
         elif request.url.path.startswith("/static/") and "cache-control" not in h:
             # Revalidate via ETag so edited JS/CSS (e.g. translations) show up on the next load.
             h["Cache-Control"] = "no-cache"
@@ -190,14 +206,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # ---------------------------------------------------------------- pages
     def page(name: str):
+        html = (STATIC_DIR / name).read_text(encoding="utf-8").replace('"/static/', f'"{versioned_prefix}/')
+
         def handler():
-            return FileResponse(STATIC_DIR / name, headers={"Cache-Control": "no-cache"})
+            return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
         return handler
 
     app.get("/", include_in_schema=False)(page("index.html"))
     app.get("/track", include_in_schema=False)(page("track.html"))
     app.get("/admin", include_in_schema=False)(page("admin.html"))
     app.get("/quiz", include_in_schema=False)(page("quiz.html"))
+    # The versioned mount must come first: "/static" would otherwise swallow its paths.
+    app.mount(versioned_prefix, StaticFiles(directory=STATIC_DIR), name="static-versioned")
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
     # ------------------------------------------------------------ public API
