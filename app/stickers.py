@@ -421,19 +421,24 @@ def character_svg(character: str, size_px: int = 400) -> str:
 def render_sticker(template_id: str, name: str, *, transparent: bool = True,
                    watermark: bool | str = False, size_px: int = OUTPUT_PX,
                    character: str | None = None, character_label: str | None = None,
-                   traits: list[str] | None = None) -> str:
+                   traits: list[str] | None = None, layer: str = "all") -> str:
     """Render the sticker as a standalone SVG document string.
 
     With ``character`` the template's central figure is replaced by the quiz
     character, and ``character_label`` / ``traits`` are printed on the sticker.
+
+    ``layer`` splits the sticker for the animated story video: ``base`` (outline,
+    background, scenery, arc title), ``hero`` (central figure only, unclipped) and
+    ``front`` (name banner and labels). Stacked in that order they equal ``all``.
     """
     if template_id not in TEMPLATES:
         raise KeyError(template_id)
+    if layer not in LAYERS:
+        raise ValueError(layer)
     (bg_inner, bg_outer), scenery, hero = _art(template_id)
     if character:
         hero = (f'<g class="character" data-character="{escape(character)}">'
                 + character_figure(character, 500, 440, 1.15) + "</g>")
-    art = scenery + hero
     name = clean_text(name)
     lay = layout_name(name)
 
@@ -458,7 +463,9 @@ def render_sticker(template_id: str, name: str, *, transparent: bool = True,
 
     b = BANNER
     parts = [defs]
-    if not transparent:
+    if layer == "hero":
+        return _svg_doc(size_px, lay, defs + hero)
+    if not transparent and layer == "all":
         parts.append(f'<rect width="{VIEW}" height="{VIEW}" fill="{NIGHT}"/>')
     # Die-cut sticker outline: dark keyline, then white border, around disc + banner.
     parts.append(
@@ -467,12 +474,17 @@ def render_sticker(template_id: str, name: str, *, transparent: bool = True,
         '<g fill="#FFFFFF"><circle cx="500" cy="500" r="486"/>'
         f'<rect x="{b["x"] - 18}" y="{b["y"] - 18}" width="{b["w"] + 36}" height="{b["h"] + 36}" rx="44"/></g>'
     )
+    art = scenery + (hero if layer == "all" else "")
     parts.append(f'<g clip-path="url(#disc)"><rect width="{VIEW}" height="{VIEW}" fill="url(#bgGrad)"/>{art}</g>')
     parts.append(
         f'<text font-family="{FONT_STACK}" font-weight="900" font-size="74" letter-spacing="6" '
         f'fill="{ORANGE}" stroke="{NIGHT}" stroke-width="12" stroke-linejoin="round" paint-order="stroke">'
         '<textPath href="#arcTop" startOffset="50%" text-anchor="middle">HALLOWEEN 2026</textPath></text>'
     )
+    if layer == "base":
+        return _svg_doc(size_px, lay, "".join(parts))
+    if layer == "front":
+        parts = [defs]
     parts.append(
         f'<rect x="{b["x"]}" y="{b["y"]}" width="{b["w"]}" height="{b["h"]}" rx="30" '
         f'fill="url(#bannerGrad)" stroke="{ORANGE}" stroke-width="8"/>'
@@ -519,7 +531,7 @@ def render_sticker(template_id: str, name: str, *, transparent: bool = True,
             f'font-size="{fs_traits}" fill="#FBF6FF"{fit}>{escape(line)}</text>'
         )
 
-    if watermark:
+    if watermark and layer == "all":
         mark = watermark if isinstance(watermark, str) else "SAMPLE"
         parts.append(
             '<text x="500" y="470" text-anchor="middle" dominant-baseline="central" '
@@ -528,9 +540,16 @@ def render_sticker(template_id: str, name: str, *, transparent: bool = True,
             f'letter-spacing="10">{escape(mark)}</text>'
         )
 
+    return _svg_doc(size_px, lay, "".join(parts))
+
+
+LAYERS = ("all", "base", "hero", "front")
+
+
+def _svg_doc(size_px: int, lay: NameLayout, body: str) -> str:
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{size_px}" height="{size_px}" '
         f'viewBox="0 0 {VIEW} {VIEW}" role="img" aria-label="Halloween 2026 sticker">'
         f'<title>Halloween 2026 — {escape(" ".join(lay.lines))}</title>'
-        + "".join(parts) + "</svg>"
+        + body + "</svg>"
     )

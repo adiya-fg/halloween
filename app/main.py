@@ -263,6 +263,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         svc.set_template(row["id"], body.template_id)
         return {"template_id": body.template_id, "svg": svg, "request_code": row["request_code"]}
 
+    @app.post("/api/requests/{token}/animate")
+    def animate(token: str, body: GenerateIn, request: Request):
+        """Sticker split into layers for the browser-side animated story video."""
+        rate_limit(request, "generate", 60, 60)
+        row = svc.require_approved(token)  # same server-side approval gate as generate/download
+        if body.template_id not in TEMPLATES:
+            raise ServiceError("Unknown design.", 422)
+        layers = {
+            layer: build_sticker(body.template_id, row["name"], row["character"], lang_of(request),
+                                 transparent=True, with_character=body.with_character,
+                                 show_traits=body.show_traits, size_px=1000, layer=layer)
+            for layer in ("base", "hero", "front")
+        }
+        return {"template_id": body.template_id, "layers": layers, "request_code": row["request_code"]}
+
     @app.get("/api/requests/{token}/download")
     def download(token: str, request: Request,
                  template_id: Optional[str] = Query(default=None, max_length=40),

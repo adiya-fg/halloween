@@ -126,6 +126,20 @@
             <button type="button" class="btn secondary" id="download-svg" data-i18n="track.dlSvg">Download vector SVG</button>
           </div>
           <p class="small muted" data-i18n="track.pngNote">PNG is 3000 × 3000 px.</p>
+          <div class="anim-box">
+            <h3 data-i18n="anim.title">✨ Living sticker — story video</h3>
+            <p class="small muted" data-i18n="anim.intro">Your sticker comes alive: floating figure, flying bats, twinkling stars. Save it as a vertical video for Instagram, Facebook or TikTok stories.</p>
+            <button type="button" class="btn block" id="anim-btn" data-i18n="anim.make">✨ Bring my sticker to life</button>
+            <div id="anim-error" hidden></div>
+            <div id="anim-wrap" hidden>
+              <div class="story-frame"><canvas id="anim-canvas" width="1080" height="1920" role="img" data-i18n-attr="aria-label:anim.alt" aria-label="Animated sticker"></canvas></div>
+              <div class="btn-row">
+                <button type="button" class="btn success" id="anim-save" data-i18n="anim.save">⬇ Save video</button>
+                <button type="button" class="btn secondary" id="anim-share" hidden data-i18n="anim.share">Share</button>
+              </div>
+              <p class="small muted" id="anim-note" data-i18n="anim.note">The video is 6 seconds and loops. It is recorded in your browser, so keep this page open while it saves.</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -298,3 +298,13 @@ footer.site { text-align: center; padding: 30px 16px 40px; color: var(--muted); 
 
 .char-chip { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; color: var(--yellow); margin: 0 0 8px; }
 .char-chip img { width: 40px; height: 40px; }
+
+/* ---------- Animated story sticker ---------- */
+.anim-box { margin-top: 22px; padding-top: 18px; border-top: 1px dashed var(--line); }
+.anim-box h3 { margin: 0 0 6px; }
+.story-frame { display: grid; place-items: center; margin: 16px 0; }
+.story-frame canvas {
+  display: block; width: 100%; max-width: 340px; height: auto; aspect-ratio: 9 / 16;
+  border-radius: 22px; border: 3px solid var(--orange);
+  box-shadow: 0 10px 40px rgba(255, 122, 26, .25);
+}

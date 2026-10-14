@@ -13,9 +13,11 @@ def report(client, token):
 def assert_locked(client, token, expected=403):
     g = client.post(f"/api/requests/{token}/generate", json=GEN)
     d = client.get(f"/api/requests/{token}/download")
+    a = client.post(f"/api/requests/{token}/animate", json=GEN)
     assert g.status_code == expected, g.text
     assert d.status_code == expected, d.text
-    assert "<svg" not in g.text and "<svg" not in d.text
+    assert a.status_code == expected, a.text
+    assert "<svg" not in g.text and "<svg" not in d.text and "<svg" not in a.text
     status = client.get(f"/api/requests/{token}").json()
     assert status["can_generate"] is False
 

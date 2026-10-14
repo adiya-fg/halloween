@@ -1,6 +1,7 @@
 import { lang, t } from './i18n.js';
 import { api, h, showAlert, clearAlert, fmtTime, storage } from './common.js';
 import { fitSvgText, svgBlobUrl, svgToPng, saveBlob } from './sticker.js';
+import { createStory, recordingFormat } from './animate.js';
 
 // The tracking token lives in the URL fragment, which browsers never send to
 // servers or leak via Referer headers.
@@ -14,6 +15,8 @@ let previewUrl = null;
 let lastSvg = null;
 let lastTemplate = null;
 let pvUrl = null;
+let story = null;
+let storyFile = null;
 const builtGalleries = new Set();
 let quizContent = null;
 
@@ -228,6 +231,7 @@ $('generate-btn').addEventListener('click', async () => {
     });
     lastSvg = fitSvgText(res.svg);
     lastTemplate = tpl;
+    resetStory();
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     previewUrl = svgBlobUrl(lastSvg);
     $('preview-img').src = previewUrl;
@@ -286,6 +290,78 @@ $('download-svg').addEventListener('click', async () => {
     saveBlob(new Blob([svg], { type: 'image/svg+xml' }), fileBase() + '.svg');
   } catch (e) {
     showAlert($('gen-error'), 'error', e.message);
+  }
+});
+
+// --- Living sticker: animated story video, built in the browser from approved layers.
+function resetStory() {
+  if (story) story.stop();
+  story = null;
+  storyFile = null;
+  $('anim-wrap').hidden = true;
+  $('anim-share').hidden = true;
+  clearAlert($('anim-error'));
+}
+
+$('anim-btn').addEventListener('click', async () => {
+  if (!lastTemplate) return;
+  const btn = $('anim-btn');
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = t('anim.making');
+  resetStory();
+  try {
+    const res = await api(apiPath('/animate'), {
+      method: 'POST', body: { template_id: lastTemplate, ...charOptions('generator-card') },
+    });
+    const layers = { ...res.layers, front: fitSvgText(res.layers.front) };
+    $('anim-canvas').setAttribute('aria-label', t('anim.alt', { name: current.name || '' }));
+    story = await createStory($('anim-canvas'), layers, {
+      title: 'HALLOWEEN 2026', caption: t('anim.caption'), footer: '🎃 ' + window.location.host,
+    });
+    $('anim-wrap').hidden = false;
+    $('anim-save').hidden = !recordingFormat();
+    if (!recordingFormat()) showAlert($('anim-error'), 'error', t('anim.unsupported'));
+    $('anim-wrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (e) {
+    showAlert($('anim-error'), 'error', e.message);
+    if (e.status === 403 || e.status === 410) load({ quiet: true });
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label;
+  }
+});
+
+$('anim-save').addEventListener('click', async () => {
+  if (!story) return;
+  const btn = $('anim-save');
+  const label = btn.textContent;
+  btn.disabled = true;
+  $('anim-btn').disabled = true;
+  clearAlert($('anim-error'));
+  try {
+    const { blob, ext } = await story.record((p) => {
+      btn.textContent = t('anim.saving', { pct: Math.round(p * 100) });
+    });
+    const name = `${fileBase()}-story.${ext}`;
+    saveBlob(blob, name);
+    storyFile = new File([blob], name, { type: blob.type });
+    $('anim-share').hidden = !(navigator.canShare && navigator.canShare({ files: [storyFile] }));
+  } catch (e) {
+    showAlert($('anim-error'), 'error', e.message);
+  } finally {
+    btn.disabled = false;
+    $('anim-btn').disabled = false;
+    btn.textContent = label;
+  }
+});
+
+$('anim-share').addEventListener('click', async () => {
+  if (!storyFile) return;
+  try {
+    await navigator.share({ files: [storyFile], title: t('anim.caption') });
+  } catch (e) {
+    if (e.name !== 'AbortError') showAlert($('anim-error'), 'error', e.message);
   }
 });
 
