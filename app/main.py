@@ -34,7 +34,7 @@ def static_version(root: Path = STATIC_DIR) -> str:
         digest.update(path.read_bytes())
     return digest.hexdigest()[:12]
 
-CSP = ("default-src 'self'; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; "
+CSP = ("default-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self'; script-src 'self'; "
        "connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; "
        "form-action 'self'; frame-ancestors 'none'")
 

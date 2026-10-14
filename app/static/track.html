@@ -132,12 +132,22 @@
             <button type="button" class="btn block" id="anim-btn" data-i18n="anim.make">✨ Bring my sticker to life</button>
             <div id="anim-error" hidden></div>
             <div id="anim-wrap" hidden>
-              <div class="story-frame"><canvas id="anim-canvas" width="1080" height="1920" role="img" data-i18n-attr="aria-label:anim.alt" aria-label="Animated sticker"></canvas></div>
-              <div class="btn-row">
-                <button type="button" class="btn success" id="anim-save" data-i18n="anim.save">⬇ Save video</button>
-                <button type="button" class="btn secondary" id="anim-share" hidden data-i18n="anim.share">Share</button>
+              <div class="story-frame">
+                <canvas id="anim-canvas" width="1080" height="1920" role="img" data-i18n-attr="aria-label:anim.alt" aria-label="Animated sticker"></canvas>
+                <video id="anim-video" hidden controls loop autoplay muted playsinline></video>
               </div>
-              <p class="small muted" id="anim-note" data-i18n="anim.note">The video is 6 seconds and loops. It is recorded in your browser, so keep this page open while it saves.</p>
+              <div id="anim-progress" class="anim-progress" hidden>
+                <progress id="anim-bar" max="100" value="0"></progress>
+                <p class="small" id="anim-status" aria-live="polite"></p>
+              </div>
+              <div id="anim-done" hidden>
+                <p class="anim-ready" data-i18n="anim.ready">✅ Your video is ready!</p>
+                <div class="btn-row">
+                  <a class="btn success" id="anim-download" download data-i18n="anim.download">⬇ Download video</a>
+                  <button type="button" class="btn secondary" id="anim-share" hidden data-i18n="anim.share">Share</button>
+                </div>
+              </div>
+              <p class="small muted" data-i18n="anim.note">The video is 6 seconds and loops. Keep this page open until it is ready.</p>
             </div>
           </div>
         </div>

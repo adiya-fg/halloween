@@ -1,7 +1,7 @@
 import { lang, t } from './i18n.js';
 import { api, h, showAlert, clearAlert, fmtTime, storage } from './common.js';
 import { fitSvgText, svgBlobUrl, svgToPng, saveBlob } from './sticker.js';
-import { createStory, recordingFormat } from './animate.js';
+import { LOOP, createStory, recordingFormat } from './animate.js';
 
 // The tracking token lives in the URL fragment, which browsers never send to
 // servers or leak via Referer headers.
@@ -294,13 +294,30 @@ $('download-svg').addEventListener('click', async () => {
 });
 
 // --- Living sticker: animated story video, built in the browser from approved layers.
+// One tap records the 6-second loop with visible progress, then the finished video
+// replaces the live canvas, so it is obvious when it is done.
+let storyUrl = null;
+
 function resetStory() {
   if (story) story.stop();
   story = null;
   storyFile = null;
+  if (storyUrl) URL.revokeObjectURL(storyUrl);
+  storyUrl = null;
   $('anim-wrap').hidden = true;
+  $('anim-canvas').hidden = false;
+  $('anim-video').hidden = true;
+  $('anim-video').removeAttribute('src');
+  $('anim-progress').hidden = true;
+  $('anim-done').hidden = true;
   $('anim-share').hidden = true;
   clearAlert($('anim-error'));
+}
+
+function showProgress(fraction) {
+  const left = Math.max(0, Math.ceil(LOOP * (1 - fraction)));
+  $('anim-bar').value = Math.round(fraction * 100);
+  $('anim-status').textContent = t('anim.recording', { sec: left });
 }
 
 $('anim-btn').addEventListener('click', async () => {
@@ -320,38 +337,33 @@ $('anim-btn').addEventListener('click', async () => {
       title: 'HALLOWEEN 2026', caption: t('anim.caption'), footer: '🎃 ' + window.location.host,
     });
     $('anim-wrap').hidden = false;
-    $('anim-save').hidden = !recordingFormat();
-    if (!recordingFormat()) showAlert($('anim-error'), 'error', t('anim.unsupported'));
     $('anim-wrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!recordingFormat()) {
+      // Live animation still plays; only saving is unavailable.
+      showAlert($('anim-error'), 'error', t('anim.unsupported'));
+      return;
+    }
+    $('anim-progress').hidden = false;
+    showProgress(0);
+    const { blob, ext } = await story.record(showProgress);
+    story.stop();
+    const name = `${fileBase()}-story.${ext}`;
+    storyUrl = URL.createObjectURL(blob);
+    storyFile = new File([blob], name, { type: blob.type });
+    $('anim-download').href = storyUrl;
+    $('anim-download').download = name;
+    $('anim-canvas').hidden = true;
+    $('anim-video').src = storyUrl;
+    $('anim-video').hidden = false;
+    $('anim-progress').hidden = true;
+    $('anim-done').hidden = false;
+    $('anim-share').hidden = !(navigator.canShare && navigator.canShare({ files: [storyFile] }));
   } catch (e) {
+    $('anim-progress').hidden = true;
     showAlert($('anim-error'), 'error', e.message);
     if (e.status === 403 || e.status === 410) load({ quiet: true });
   } finally {
     btn.disabled = false;
-    btn.textContent = label;
-  }
-});
-
-$('anim-save').addEventListener('click', async () => {
-  if (!story) return;
-  const btn = $('anim-save');
-  const label = btn.textContent;
-  btn.disabled = true;
-  $('anim-btn').disabled = true;
-  clearAlert($('anim-error'));
-  try {
-    const { blob, ext } = await story.record((p) => {
-      btn.textContent = t('anim.saving', { pct: Math.round(p * 100) });
-    });
-    const name = `${fileBase()}-story.${ext}`;
-    saveBlob(blob, name);
-    storyFile = new File([blob], name, { type: blob.type });
-    $('anim-share').hidden = !(navigator.canShare && navigator.canShare({ files: [storyFile] }));
-  } catch (e) {
-    showAlert($('anim-error'), 'error', e.message);
-  } finally {
-    btn.disabled = false;
-    $('anim-btn').disabled = false;
     btn.textContent = label;
   }
 });

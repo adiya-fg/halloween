@@ -308,3 +308,11 @@ footer.site { text-align: center; padding: 30px 16px 40px; color: var(--muted); 
   border-radius: 22px; border: 3px solid var(--orange);
   box-shadow: 0 10px 40px rgba(255, 122, 26, .25);
 }
+.story-frame video {
+  display: block; width: 100%; max-width: 340px; height: auto; aspect-ratio: 9 / 16;
+  border-radius: 22px; border: 3px solid var(--orange); background: #000;
+}
+.anim-progress { text-align: center; }
+.anim-progress progress { width: 100%; max-width: 340px; height: 14px; accent-color: var(--orange); }
+.anim-ready { text-align: center; font-weight: 800; color: var(--yellow, #ffd23f); margin: 4px 0 10px; }
+#anim-done .btn-row { justify-content: center; }
