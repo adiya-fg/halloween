@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title data-i18n="admin.title">Admin — Halloween 2026 Stickers</title>
+  <link rel="icon" href="/static/img/pumpkin.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <main class="wrap">
+
+    <!-- Login -->
+    <section id="login-view" class="card" hidden>
+      <h2 data-i18n="admin.login">🔑 Organizer login</h2>
+      <form id="login-form">
+        <div class="field">
+          <label for="username" data-i18n="admin.username">Username</label>
+          <input id="username" type="text" autocomplete="username" required maxlength="40">
+        </div>
+        <div class="field">
+          <label for="password" data-i18n="admin.password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" required maxlength="200">
+        </div>
+        <div id="login-error" hidden></div>
+        <button type="submit" class="btn block" data-i18n="admin.loginBtn">Log in</button>
+      </form>
+    </section>
+
+    <!-- Dashboard -->
+    <div id="dash-view" hidden>
+      <div class="admin-top">
+        <div class="mini-header"><a href="/admin"><img src="/static/img/pumpkin.svg" alt=""> <span data-i18n="admin.brand">Sticker Admin</span></a></div>
+        <div>
+          <span class="muted"><span data-i18n="admin.signedIn">Signed in as</span> <strong id="admin-name"></strong></span>
+          <button type="button" class="btn small secondary" id="logout-btn" data-i18n="admin.logout">Log out</button>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist" data-i18n-attr="aria-label:admin.sections" aria-label="Admin sections">
+        <button type="button" class="tab" role="tab" id="tab-requests" aria-controls="panel-requests" aria-selected="true" data-i18n="admin.tabRequests">Requests</button>
+        <button type="button" class="tab" role="tab" id="tab-settings" aria-controls="panel-settings" aria-selected="false" data-i18n="admin.tabSettings">Payment settings</button>
+        <button type="button" class="tab" role="tab" id="tab-stats" aria-controls="panel-stats" aria-selected="false" data-i18n="admin.tabStats">Quiz stats</button>
+        <button type="button" class="tab" role="tab" id="tab-audit" aria-controls="panel-audit" aria-selected="false" data-i18n="admin.tabAudit">Audit log</button>
+      </div>
+      <div id="dash-flash" hidden></div>
+
+      <section id="panel-requests" role="tabpanel" aria-labelledby="tab-requests">
+        <div class="alert info small">
+          <span data-i18n="admin.warn1">Approve a payment </span><strong data-i18n="admin.warn2">only after you have confirmed the actual transaction in the bank account</strong><span data-i18n="admin.warn3"> (amount and request ID).</span>
+        </div>
+        <div class="filters" role="group" data-i18n-attr="aria-label:admin.filterLabel" aria-label="Filter requests by status">
+          <button type="button" class="filter" data-status="ALL" aria-pressed="true" data-i18n="admin.fAll">All requests</button>
+          <button type="button" class="filter" data-status="PENDING_PAYMENT" aria-pressed="false" data-i18n="status.PENDING_PAYMENT">Awaiting payment</button>
+          <button type="button" class="filter" data-status="PAYMENT_REPORTED" aria-pressed="false" data-i18n="status.PAYMENT_REPORTED">Payment reported</button>
+          <button type="button" class="filter" data-status="APPROVED" aria-pressed="false" data-i18n="status.APPROVED">Approved</button>
+          <button type="button" class="filter" data-status="REJECTED" aria-pressed="false" data-i18n="status.REJECTED">Rejected</button>
+          <button type="button" class="filter" data-status="EXPIRED" aria-pressed="false" data-i18n="status.EXPIRED">Expired</button>
+          <button type="button" class="btn small secondary" id="reload-btn" data-i18n="admin.reload">↻ Reload</button>
+        </div>
+        <div id="req-list" class="req-list" aria-live="polite"></div>
+      </section>
+
+      <section id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
+        <form id="settings-form" class="card">
+          <h2 data-i18n="admin.setTitle">Payment configuration</h2>
+          <p class="small muted" data-i18n="admin.setNote">Changes apply to new requests only.</p>
+          <div class="field"><label for="s-bank" data-i18n="admin.sBank">Bank name</label><input id="s-bank" type="text" maxlength="120" required></div>
+          <div class="field"><label for="s-holder" data-i18n="admin.sHolder">Account holder name</label><input id="s-holder" type="text" maxlength="120" required></div>
+          <div class="field"><label for="s-number" data-i18n="admin.sNumber">Account number</label><input id="s-number" type="text" maxlength="80" required></div>
+          <div class="field"><label for="s-amount"><span data-i18n="admin.sAmount">Transfer amount</span> <span class="hint" data-i18n="admin.sAmountHint">e.g. 500 for JPY, 10.00 for USD</span></label><input id="s-amount" type="text" inputmode="decimal" maxlength="20" required></div>
+          <div class="field"><label for="s-currency" data-i18n="admin.sCurrency">Currency (ISO code)</label><input id="s-currency" type="text" maxlength="3" required></div>
+          <div class="field"><label for="s-instructions" data-i18n="admin.sInstr">Payment instructions (English)</label><textarea id="s-instructions" maxlength="2000" required></textarea></div>
+          <div class="field"><label for="s-instructions-mn" data-i18n="admin.sInstrMn">Payment instructions (Mongolian)</label><textarea id="s-instructions-mn" maxlength="2000" required lang="mn"></textarea></div>
+          <div class="field"><label for="s-expiry"><span data-i18n="admin.sExpiry">Request expiration (hours)</span> <span class="hint" data-i18n="admin.sExpiryHint">Unpaid requests expire after this time.</span></label><input id="s-expiry" type="number" min="1" max="1440" required></div>
+          <div id="settings-msg" hidden></div>
+          <button type="submit" class="btn" data-i18n="admin.save">Save settings</button>
+        </form>
+      </section>
+
+      <section id="panel-stats" role="tabpanel" aria-labelledby="tab-stats" hidden>
+        <div class="card">
+          <h2 data-i18n="admin.statsTitle">Quiz &amp; sticker statistics</h2>
+          <p class="small muted" data-i18n="admin.statsNote">Only daily totals are stored.</p>
+          <div class="table-scroll">
+            <table class="audit">
+              <thead><tr>
+                <th scope="col" data-i18n="admin.cEvent">Event</th>
+                <th scope="col" data-i18n="admin.cToday">Today</th>
+                <th scope="col" data-i18n="admin.cTotal">Total</th>
+              </tr></thead>
+              <tbody id="stats-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-audit" role="tabpanel" aria-labelledby="tab-audit" hidden>
+        <div class="card">
+          <h2 data-i18n="admin.auditTitle">Audit log (latest 200)</h2>
+          <div class="table-scroll">
+            <table class="audit">
+              <thead><tr>
+                <th scope="col" data-i18n="admin.cTime">Time</th><th scope="col" data-i18n="admin.cActor">Actor</th>
+                <th scope="col" data-i18n="admin.cAction">Action</th><th scope="col" data-i18n="admin.cTarget">Target</th>
+                <th scope="col" data-i18n="admin.cDetails">Details</th>
+              </tr></thead>
+              <tbody id="audit-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Dialogs -->
+  <dialog id="approve-dialog" aria-labelledby="approve-title">
+    <form method="dialog" id="approve-form">
+      <h2 id="approve-title" data-i18n="admin.apTitle">Approve payment</h2>
+      <p><span data-i18n="admin.request">Request</span> <span class="code" id="ap-code"></span> — <strong id="ap-name"></strong></p>
+      <p><span data-i18n="admin.expected">Expected amount:</span> <strong id="ap-amount"></strong></p>
+      <div class="field"><label for="ap-ref"><span data-i18n="admin.apRef">Bank transaction reference</span> <span class="hint" data-i18n="admin.apRefHint">Optional, recommended</span></label>
+        <input id="ap-ref" type="text" maxlength="120"></div>
+      <p><label class="check"><input type="checkbox" id="ap-confirm" required>
+        <span data-i18n="admin.apConfirm">I have checked the bank account and confirmed a matching transfer of the expected amount.</span></label></p>
+      <div id="ap-error" hidden></div>
+      <div class="btn-row">
+        <button type="submit" class="btn success" id="ap-submit" value="ok" disabled data-i18n="admin.approve">Approve Payment</button>
+        <button type="button" class="btn secondary" data-close data-i18n="admin.cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="reject-dialog" aria-labelledby="reject-title">
+    <form method="dialog" id="reject-form">
+      <h2 id="reject-title" data-i18n="admin.rjTitle">Reject payment</h2>
+      <p><span data-i18n="admin.request">Request</span> <span class="code" id="rj-code"></span> — <strong id="rj-name"></strong></p>
+      <div class="field"><label for="rj-reason" data-i18n="admin.rjReason">Reason (shown to the requester)</label>
+        <textarea id="rj-reason" maxlength="500" required minlength="3"></textarea></div>
+      <div id="rj-error" hidden></div>
+      <div class="btn-row">
+        <button type="submit" class="btn danger" value="ok" data-i18n="admin.reject">Reject Payment</button>
+        <button type="button" class="btn secondary" data-close data-i18n="admin.cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="note-dialog" aria-labelledby="note-title">
+    <form method="dialog" id="note-form">
+      <h2 id="note-title" data-i18n="admin.ntTitle">Add admin note</h2>
+      <p><span data-i18n="admin.request">Request</span> <span class="code" id="nt-code"></span> <span class="small muted" data-i18n="admin.ntInternal">(internal — never shown to the requester)</span></p>
+      <div class="field"><label for="nt-text" data-i18n="admin.note">Note</label><textarea id="nt-text" maxlength="1000" required></textarea></div>
+      <div id="nt-error" hidden></div>
+      <div class="btn-row">
+        <button type="submit" class="btn" value="ok" data-i18n="admin.saveNote">Save note</button>
+        <button type="button" class="btn secondary" data-close data-i18n="admin.cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="/static/js/admin.js"></script>
+</body>
+</html>

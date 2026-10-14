@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title data-i18n="track.title">Your Sticker Request — Halloween 2026</title>
+  <link rel="icon" href="/static/img/pumpkin.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <main class="wrap narrow">
+    <div class="admin-top">
+      <div class="mini-header">
+        <a href="/"><img src="/static/img/pumpkin.svg" alt=""> <span data-i18n="brand">Halloween 2026 Stickers</span></a>
+      </div>
+    </div>
+
+    <div id="page-error" hidden></div>
+    <p id="loading" class="card muted" data-i18n="track.loading">Loading your request…</p>
+
+    <section id="status-card" class="card" hidden aria-live="polite">
+      <div class="status-head">
+        <span><span data-i18n="track.reqId">Request ID:</span> <span class="code" id="req-code"></span></span>
+        <span class="badge" id="req-badge"></span>
+      </div>
+      <p class="status-message" id="req-message"></p>
+      <p class="who muted"><span data-i18n="track.stickerName">Sticker name:</span> <strong id="req-name"></strong></p>
+      <p id="char-chip" class="char-chip" hidden><img id="char-img" alt=""><span data-i18n="track.character">Your character:</span> <span id="char-name"></span></p>
+      <p id="add-character" hidden><a href="/quiz" data-i18n="track.addCharacter">Find your Halloween character and add it to your sticker →</a></p>
+      <div id="flash" hidden></div>
+      <div class="btn-row">
+        <button type="button" class="btn secondary small" id="refresh-btn" data-i18n="track.refresh">↻ Refresh status</button>
+      </div>
+    </section>
+
+    <section id="link-card" class="card" hidden>
+      <h2 data-i18n="track.linkTitle">🔐 Save your private link</h2>
+      <p class="small muted" data-i18n="track.linkNote">Anyone with this link can see your request and download your sticker, so keep it private.</p>
+      <div class="copy-row">
+        <label for="private-link" class="sr-only" data-i18n="track.linkLabel">Private link</label>
+        <input id="private-link" type="text" readonly>
+        <button type="button" class="btn small secondary" id="copy-btn" data-i18n="track.copy">Copy</button>
+      </div>
+    </section>
+
+    <section id="payment-card" class="card" hidden>
+      <h2 data-i18n="track.payTitle">💸 Bank transfer details</h2>
+      <dl class="details">
+        <dt data-i18n="track.bank">Bank</dt><dd id="pay-bank"></dd>
+        <dt data-i18n="track.holder">Account holder</dt><dd id="pay-holder"></dd>
+        <dt data-i18n="track.number">Account number</dt><dd id="pay-number"></dd>
+        <dt data-i18n="track.amount">Amount</dt><dd id="pay-amount"></dd>
+        <dt data-i18n="track.desc">Transfer description</dt><dd><span class="code" id="pay-ref"></span> <span class="small muted" data-i18n="track.descNote">(include this if your bank allows it)</span></dd>
+      </dl>
+      <h3 data-i18n="track.instructions">Instructions</h3>
+      <p id="pay-instructions" class="pre-wrap"></p>
+      <div class="alert info">
+        <span data-i18n="track.note1">Approval happens only after the organizer </span><strong data-i18n="track.note2">manually checks the real bank transaction</strong><span data-i18n="track.note3">. Clicking the button below does not approve anything by itself.</span>
+      </div>
+      <div id="report-box">
+        <button type="button" class="btn block" id="report-btn" data-i18n="track.report">I Have Transferred the Money</button>
+      </div>
+    </section>
+
+    <section id="waiting-card" class="card" hidden>
+      <div class="waiting">
+        <img src="/static/img/ghost.svg" alt="" class="spin">
+        <div>
+          <h2 data-i18n="track.waitTitle">Waiting for verification…</h2>
+          <p class="muted" id="wait-text"></p>
+        </div>
+      </div>
+      <button type="button" class="btn block" disabled aria-disabled="true" data-i18n="track.locked">Generate My Sticker (locked until approval)</button>
+    </section>
+
+    <section id="preview-card" class="card" hidden>
+      <h2 data-i18n="track.previewTitle">👀 Preview your sticker</h2>
+      <fieldset class="gallery" id="pv-gallery">
+        <legend data-i18n="track.choose">Choose your design</legend>
+      </fieldset>
+      <p><label class="check"><input type="checkbox" id="pv-transparent" checked> <span data-i18n="track.transparent">Transparent background</span></label></p>
+      <div class="char-options" hidden>
+          <p><label class="check"><input type="checkbox" class="opt-character" checked> <span data-i18n="track.withCharacter">Include my Halloween character</span></label></p>
+          <p><label class="check"><input type="checkbox" class="opt-traits" checked> <span data-i18n="quiz.showTraits">Show my three traits</span></label></p>
+        </div>
+      <button type="button" class="btn block secondary" id="pv-btn" data-i18n="quiz.previewBtn">Show preview</button>
+      <div id="pv-error" hidden></div>
+      <div id="pv-wrap" hidden>
+        <div class="preview-box"><img id="pv-img" alt="" data-i18n-attr="alt:track.previewAlt"></div>
+      </div>
+      <div class="alert info" data-i18n="track.previewNote">This watermarked preview is free.</div>
+    </section>
+
+    <section id="rejected-card" class="card" hidden>
+      <h2 data-i18n="track.rejTitle">😿 Payment not verified</h2>
+      <p><strong data-i18n="track.reason">Reason:</strong> <span id="reject-reason"></span></p>
+      <p id="reject-steps" class="muted"></p>
+    </section>
+
+    <section id="expired-card" class="card" hidden>
+      <h2 data-i18n="track.expTitle">⌛ This request has expired</h2>
+      <p class="muted"><span data-i18n="track.exp1">Unpaid requests expire automatically. You're welcome to </span><a href="/" data-i18n="track.exp2">start a new request</a><span data-i18n="track.exp3">.</span></p>
+    </section>
+
+    <section id="generator-card" class="card" hidden>
+      <h2 data-i18n="track.genTitle">🎉 Your sticker generator is ready!</h2>
+      <div id="gen-intro">
+        <button type="button" class="btn block" id="open-generator" data-i18n="track.generate">Generate My Sticker</button>
+      </div>
+      <div id="gen-body" hidden>
+        <fieldset class="gallery" id="gen-gallery">
+          <legend data-i18n="track.choose">Choose your design</legend>
+        </fieldset>
+        <p><label class="check"><input type="checkbox" id="transparent" checked> <span data-i18n="track.transparent">Transparent background (best for printing stickers)</span></label></p>
+        <div class="char-options" hidden>
+          <p><label class="check"><input type="checkbox" class="opt-character" checked> <span data-i18n="track.withCharacter">Include my Halloween character</span></label></p>
+          <p><label class="check"><input type="checkbox" class="opt-traits" checked> <span data-i18n="quiz.showTraits">Show my three traits</span></label></p>
+        </div>
+        <button type="button" class="btn block" id="generate-btn" data-i18n="track.preview">Create Preview</button>
+        <div id="gen-error" hidden></div>
+        <div id="preview-wrap" hidden>
+          <div class="preview-box"><img id="preview-img" alt="" data-i18n-attr="alt:track.previewAlt"></div>
+          <div class="btn-row">
+            <button type="button" class="btn success" id="download-png" data-i18n="track.dlPng">⬇ Download High-Resolution PNG</button>
+            <button type="button" class="btn secondary" id="download-svg" data-i18n="track.dlSvg">Download vector SVG</button>
+          </div>
+          <p class="small muted" data-i18n="track.pngNote">PNG is 3000 × 3000 px.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="site" data-i18n="footer.track">Happy Halloween 2026! 🦇</footer>
+  <script type="module" src="/static/js/track.js"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="quiz.title">Halloween Character Quiz — Halloween 2026</title>
+  <meta name="description" content="Answer 6 fun questions and discover your spooky Halloween 2026 personality!">
+  <link rel="icon" href="/static/img/pumpkin.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <main class="wrap narrow">
+    <div class="admin-top">
+      <div class="mini-header">
+        <a href="/"><img src="/static/img/pumpkin.svg" alt=""> <span data-i18n="brand">Halloween 2026 Stickers</span></a>
+      </div>
+    </div>
+
+    <div id="quiz-error" hidden></div>
+
+    <!-- Intro -->
+    <section id="intro" class="card quiz-hero" hidden>
+      <div class="char-row" aria-hidden="true">
+        <img src="/api/characters/WIZARD.svg" alt="" width="72" height="72">
+        <img src="/api/characters/VAMPIRE.svg" alt="" width="72" height="72">
+        <img src="/api/characters/FRIENDLY_GHOST.svg" alt="" width="72" height="72">
+        <img src="/api/characters/BLACK_CAT.svg" alt="" width="72" height="72">
+      </div>
+      <h1 class="quiz-title" data-i18n="quizCard.title">Which Halloween Character Matches You in 2026?</h1>
+      <p data-i18n="quizCard.desc">Answer 6 fun questions and discover your spooky personality!</p>
+      <button type="button" class="btn block" id="start-btn" data-i18n="quiz.start">Start the quiz</button>
+      <p class="small muted" data-i18n="quiz.disclaimer">Just for fun — this is not a scientific personality test.</p>
+    </section>
+
+    <!-- Question -->
+    <section id="question-view" class="card" hidden aria-live="polite">
+      <p class="quiz-progress-label" id="progress-label"></p>
+      <div class="quiz-progress" aria-hidden="true"><div class="quiz-progress-bar" id="progress-bar"></div></div>
+      <form id="question-form" novalidate>
+        <fieldset class="quiz-options">
+          <legend id="question-text" class="quiz-question"></legend>
+          <div id="options"></div>
+        </fieldset>
+        <p id="pick-hint" class="small muted" hidden data-i18n="quiz.pickAnswer">Choose an answer to continue.</p>
+        <div class="quiz-nav">
+          <button type="button" class="btn secondary" id="back-btn" data-i18n="quiz.back">← Back</button>
+          <button type="submit" class="btn" id="next-btn" data-i18n="quiz.next">Next →</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Result -->
+    <section id="result-view" class="card result-card" hidden aria-live="polite">
+      <p class="result-heading" data-i18n="quiz.resultHeading">Your Halloween Character for 2026 Is...</p>
+      <img id="result-img" class="result-img" alt="" width="220" height="220">
+      <h1 id="result-name" class="result-name"></h1>
+      <p id="result-desc" class="result-desc"></p>
+      <h2 class="sr-only" data-i18n="quiz.traits">Traits</h2>
+      <ul id="result-traits" class="traits"></ul>
+      <p id="result-tagline" class="tagline"></p>
+      <div class="btn-row center">
+        <button type="button" class="btn" id="create-btn" data-i18n="quiz.create">Create My Personalized Sticker</button>
+        <button type="button" class="btn secondary" id="share-btn" data-i18n="quiz.share">Share My Result</button>
+        <button type="button" class="btn secondary" id="retry-btn" data-i18n="quiz.retry">Try Again</button>
+      </div>
+      <div id="share-status" hidden></div>
+      <div id="share-fallback" class="copy-row" hidden>
+        <label for="share-text" class="sr-only" data-i18n="quiz.copyManual">Copy this text:</label>
+        <textarea id="share-text" readonly rows="3"></textarea>
+      </div>
+      <p class="small muted" data-i18n="quiz.disclaimer">Just for fun — this is not a scientific personality test.</p>
+    </section>
+
+    <!-- Sticker builder -->
+    <section id="builder-view" class="card" hidden>
+      <button type="button" class="btn small secondary" id="builder-back" data-i18n="quiz.backToResult">← Back to my result</button>
+      <h2 data-i18n="quiz.builderTitle">🎨 Create your character sticker</h2>
+      <p class="muted" data-i18n="quiz.builderIntro">Your sticker shows your name, your character and “Halloween 2026”.</p>
+      <div class="field">
+        <label for="b-name"><span data-i18n="index.name">Your name</span> <span aria-hidden="true">*</span>
+          <span class="hint" data-i18n="index.nameHint">This is printed on your sticker (1–40 characters).</span></label>
+        <input id="b-name" type="text" required maxlength="40" autocomplete="name">
+      </div>
+      <fieldset class="gallery" id="b-gallery">
+        <legend data-i18n="track.choose">Choose your design</legend>
+      </fieldset>
+      <p><label class="check"><input type="checkbox" id="b-transparent" checked> <span data-i18n="track.transparent">Transparent background</span></label></p>
+      <p><label class="check"><input type="checkbox" id="b-traits" checked> <span data-i18n="quiz.showTraits">Show my three traits</span></label></p>
+      <button type="button" class="btn block" id="b-preview-btn" data-i18n="quiz.previewBtn">Show preview</button>
+      <div id="b-error" hidden></div>
+      <div id="b-preview-wrap" hidden>
+        <div class="preview-box"><img id="b-preview-img" alt="" data-i18n-attr="alt:track.previewAlt"></div>
+        <div class="alert info" data-i18n="quiz.previewNote">Free watermarked preview.</div>
+        <div id="b-existing" hidden>
+          <p id="b-existing-note"></p>
+          <div class="btn-row">
+            <button type="button" class="btn" id="b-use-existing"></button>
+            <button type="button" class="btn secondary" id="b-new-request" data-i18n="quiz.newRequest">Make a new request instead</button>
+          </div>
+        </div>
+        <button type="button" class="btn block" id="b-request" data-i18n="quiz.request">Request this sticker</button>
+      </div>
+    </section>
+  </main>
+  <footer class="site" data-i18n="footer.track">Happy Halloween 2026! 🦇</footer>
+  <script type="module" src="/static/js/quiz.js"></script>
+</body>
+</html>

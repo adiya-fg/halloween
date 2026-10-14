@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="index.title">Halloween 2026 — Your Personalized Sticker</title>
+  <meta name="description" content="Create your own spooky Halloween 2026 name sticker!">
+  <link rel="icon" href="/static/img/pumpkin.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="deco" aria-hidden="true">
+        <img src="/static/img/bat.svg" alt="" class="float delay">
+        <img src="/static/img/ghost.svg" alt="" class="big float">
+        <img src="/static/img/pumpkin.svg" alt="" class="big">
+        <img src="/static/img/bat.svg" alt="" class="float">
+      </div>
+      <h1><span data-i18n="index.h1a">Halloween </span><span class="accent">2026</span><span data-i18n="index.h1b"> — Your Personalized Sticker</span></h1>
+      <p class="subtitle" data-i18n="index.subtitle">Create your own spooky Halloween name sticker!</p>
+    </div>
+  </header>
+
+  <main class="wrap narrow">
+    <div id="resume" class="alert info" hidden>
+      <span data-i18n="index.resume">You have a sticker request in progress.</span>
+      <a id="resume-link" href="/track" data-i18n="index.resumeLink">Check its status →</a>
+    </div>
+
+    <section class="card quiz-card" aria-labelledby="quiz-card-title">
+      <div class="char-row" aria-hidden="true">
+        <img src="/api/characters/WIZARD.svg" alt="" width="64" height="64">
+        <img src="/api/characters/VAMPIRE.svg" alt="" width="64" height="64">
+        <img src="/api/characters/FRIENDLY_GHOST.svg" alt="" width="64" height="64">
+        <img src="/api/characters/BLACK_CAT.svg" alt="" width="64" height="64">
+      </div>
+      <h2 id="quiz-card-title" data-i18n="quizCard.title">Which Halloween Character Matches You in 2026?</h2>
+      <p data-i18n="quizCard.desc">Answer 6 fun questions and discover your spooky personality!</p>
+      <a class="btn" href="/quiz" data-i18n="quizCard.btn">Discover My Halloween Character</a>
+    </section>
+
+    <form id="request-form" class="card" novalidate>
+      <h2 data-i18n="index.formTitle">Tell us your name</h2>
+
+      <div class="field">
+        <label for="name"><span data-i18n="index.name">Your name</span> <span aria-hidden="true">*</span>
+          <span class="hint" data-i18n="index.nameHint">This is printed on your sticker (1–40 characters).</span>
+        </label>
+        <input id="name" name="name" type="text" required maxlength="40" autocomplete="name" aria-describedby="name-count">
+        <span id="name-count" class="hint small muted" aria-live="polite"></span>
+      </div>
+
+      <div class="field">
+        <label for="email"><span data-i18n="index.email">Email</span>
+          <span class="hint" data-i18n="index.emailHint">Optional — only used if the organizer needs to contact you.</span></label>
+        <input id="email" name="email" type="email" maxlength="254" autocomplete="email" inputmode="email">
+      </div>
+
+      <!-- Honeypot: humans never see or fill this field. -->
+      <div class="hp-field" aria-hidden="true">
+        <label for="website">Leave this empty</label>
+        <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+      </div>
+
+      <fieldset class="gallery" id="gallery">
+        <legend><span data-i18n="index.pick">Pick a favorite design</span>
+          <span class="hint" data-i18n="index.pickHint">Optional — you can change it after approval.</span></legend>
+      </fieldset>
+
+      <div class="fee" id="fee" aria-live="polite">
+        <span data-i18n="index.fee">🎃 Participation fee:</span> <strong id="fee-amount">…</strong>
+        <span class="fee-note small muted" data-i18n="index.feeNote">Join us by donating via bank transfer — verified manually.</span>
+      </div>
+
+      <div id="form-error" hidden></div>
+      <button type="submit" class="btn block" id="submit-btn" data-i18n="index.submit">Request My Sticker</button>
+    </form>
+
+    <section class="card" aria-labelledby="how">
+      <h2 id="how" data-i18n="index.how">How it works</h2>
+      <ol class="steps">
+        <li><strong data-i18n="index.s1t">Request</strong><br><span data-i18n="index.s1">Enter your name and get a request ID.</span></li>
+        <li><strong data-i18n="index.s2t">Transfer</strong><br><span data-i18n="index.s2">Send the fee by bank transfer with your request ID.</span></li>
+        <li><strong data-i18n="index.s3t">Verification</strong><br><span data-i18n="index.s3">The organizer checks the bank account by hand.</span></li>
+        <li><strong data-i18n="index.s4t">Generate</strong><br><span data-i18n="index.s4">Pick a design and download your hi-res PNG sticker!</span></li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="site" data-i18n="index.footer">
+    We only store your name, optional email and request status to make your sticker. Unpaid requests expire automatically. 👻
+  </footer>
+  <script type="module" src="/static/js/index.js"></script>
+</body>
+</html>
